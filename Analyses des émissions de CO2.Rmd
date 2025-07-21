@@ -1,0 +1,92 @@
+---
+title: "R NoteBook for Climate Justice"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+
+```{r}
+#lire le fichier energy
+
+data <- read_csv("dataset/energy.csv")
+
+#filtrer uniquement les types "All_types_energy"
+
+data_all <- data %>%
+  filter(Energy_type == "all_energy_types")
+
+#liste des pays comparer
+
+pays_cibles <- c("Congo-Brazzaville", "Brazil", "France", "United States", "China", "United Kingdom", "India")
+
+#Filtrage des données pertinentes
+
+data_filtree <- data_all %>%
+  filter(Country %in% pays_cibles, Year >= 1990) %>%
+  mutate(CO2_per_capita = CO2_emission / Population)
+```
+
+```{r}
+#évolution de l'émission de CO2 totales
+
+ggplot(data_filtree, aes(x = Year, y = CO2_emission, color = Country)) +
+  geom_line(size = 1.2) +
+  labs(title = "émission totale de CO2 par pays (1990 à 2020",
+       y = "Emissions (millions de tonnes",
+       x = "Année") +
+  theme_minimal()
+
+
+ggsave("co2_totales.png", width = 8, height = 5)
+
+
+```
+
+```{r}
+#Graphic - émission par habitant
+
+ggplot(data_filtree, aes(x = Year, y = CO2_per_capita, color = Country)) +
+  geom_line(size = 1.2) +
+  labs(title = "Emission de CO2 par habitant",
+       x = "Année",
+       y = "Emission de CO2") +
+  theme_minimal()
+
+ggsave("co2_par_habitant.png", width = 8, height = 5)
+
+```
+
+
+```{r}
+#Graphique -  comparaison moyenne 2010 - 2020
+
+data_moyenne <- data_filtree %>%
+  filter(Year >= 2010, Year <=2020) %>%
+  group_by(Country) %>%
+  summarise(moy_total_CO2 = mean(CO2_emission, na.rm = TRUE),
+            moy_CO2_par_hab = mean(CO2_per_capita, na.rm = TRUE))
+
+
+#Histogamme
+
+ggplot(data_moyenne, aes(x = reorder(Country, -moy_CO2_par_hab), y = moy_CO2_par_hab, fill = Country)) +
+  geom_col() +
+  labs(title = "Emission moyennes de CO2 par habitant (2010-2020)",
+       y = "Tonnes/habitant",
+       x = "Pays") +
+  theme_minimal()
+
+ggsave("co2_moyenne_2010_2020.png", width = 8, height = 5)
+
+```
+```{r}
+# exportation des livrables (graphiques)
+
+
+
+
+
+```
